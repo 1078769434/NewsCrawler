@@ -13,6 +13,9 @@ CONFIG_DEV_FILE_PATH: Path = PROJECT_DIR / "config_dev.yaml"
 
 class Settings(BaseSettings):
     PROJECT_DIR: Path = PROJECT_DIR
+    # sqlalchemy echo
+    SQLALCHEMY_ECHO: bool = False
+
     MYSQL_DATABASE_URL: str = "mysql+aiomysql://root:password@localhost:3306/news_db"
 
     # 从 YAML 文件加载配置

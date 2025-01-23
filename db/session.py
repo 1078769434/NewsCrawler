@@ -5,7 +5,7 @@ from config import settings
 
 DATABASE_URL = settings.MYSQL_DATABASE_URL
 
-async_engine = create_async_engine(DATABASE_URL, echo=True)
+async_engine = create_async_engine(DATABASE_URL, echo=settings.SQLALCHEMY_ECHO)
 
 Base = declarative_base()
 

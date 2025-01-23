@@ -101,7 +101,7 @@ class SinaNewsSpider:
         if news_html:
             news_content = get_news_content(news_html)
             news_content["url"] = news["url"]
-            logger.info(f"新浪新闻的列表页单条新闻:{news_content}")
+            logger.info(f"新浪新闻:{news_content}")
             return news_content
         else:
             logger.error(f"获取新闻 HTML 失败: {news['url']}")
@@ -110,4 +110,4 @@ class SinaNewsSpider:
 if __name__ == "__main__":
     spider = SinaNewsSpider()
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(spider.fetch_hot_news())
+    loop.run_until_complete(spider.fetch_latest_china_news())
