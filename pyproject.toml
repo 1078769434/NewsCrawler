@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "newscrawler"
+version = "0.1.0"
+description = ""
+authors = ["limao <1078769434@qq.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+httpx = "^0.28.1"
+loguru = "^0.7.3"
+ruff = "^0.9.2"
+pre-commit = "^4.1.0"
+gne = "^0.3.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
