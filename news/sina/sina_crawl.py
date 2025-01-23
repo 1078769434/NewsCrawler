@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from model.news import NewsCategory, Source
 from news.sina.request_handler import RequestHandler
 from news.sina.data_parser import DataParser
 import asyncio
@@ -6,11 +7,14 @@ from argon_log import logger
 from parse.news_parse import get_news_content
 from utils.spider_tools import generate_timestamp
 
+from save.database_handler import DatabaseHandler
+
 
 class SinaNewsSpider:
     def __init__(self):
         self.request_handler = RequestHandler()
         self.data_parser = DataParser()
+        self.database_handler = DatabaseHandler()  # 初始化数据库操作模块
         self.latest_china_news_url = "https://feed.sina.com.cn/api/roll/get"
         self.hot_news_url = "https://top.news.sina.com.cn/ws/GetTopDataList.php"
 
@@ -43,7 +47,13 @@ class SinaNewsSpider:
                 hot_news_data = self.data_parser.parse_hot_news_data(json_data)
                 # 并发请求新闻页面的 HTML
                 tasks = [self.process_news(news) for news in hot_news_data]
-                await asyncio.gather(*tasks)
+                news_content = await asyncio.gather(*tasks)
+                # 批量插入或更新国内最新新闻数据到数据库
+                await self.database_handler.insert_or_update_news(
+                    news_content,
+                    category=NewsCategory.HOT.value,
+                    source=Source.SINA.value,
+                )
 
     async def fetch_latest_china_news(self):
         """
@@ -72,7 +82,13 @@ class SinaNewsSpider:
                 news_data = self.data_parser.parse_news_data(json_data)
                 # 并发请求新闻页面的 HTML
                 tasks = [self.process_news(news) for news in news_data]
-                await asyncio.gather(*tasks)
+                news_content = await asyncio.gather(*tasks)
+                # 批量插入或更新国内最新新闻数据到数据库
+                await self.database_handler.insert_or_update_news(
+                    news_content,
+                    category=NewsCategory.LATEST_CHINA.value,
+                    source=Source.SINA.value,
+                )
 
     async def process_news(self, news):
         """
@@ -84,11 +100,14 @@ class SinaNewsSpider:
         news_html = await self.request_handler.fetch_data(news["url"])
         if news_html:
             news_content = get_news_content(news_html)
+            news_content["url"] = news["url"]
             logger.info(f"新浪新闻的列表页单条新闻:{news_content}")
+            return news_content
         else:
             logger.error(f"获取新闻 HTML 失败: {news['url']}")
 
 
 if __name__ == "__main__":
     spider = SinaNewsSpider()
-    asyncio.run(spider.fetch_hot_news())
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(spider.fetch_hot_news())

@@ -1,6 +1,34 @@
-from sqlalchemy import Column, Integer, String, Text, Enum, DATE, func
+from sqlalchemy import Column, Integer, String, Text, DATE, func, UniqueConstraint
 
 from db.session import Base
+
+from enum import Enum
+
+import sqlalchemy as sa
+
+
+class NewsCategory(Enum):
+    """
+    新闻分类枚举类。
+    """
+
+    # 热点新闻
+    HOT = "hot"
+    # 国内最新新闻
+    LATEST_CHINA = "latest_china"
+
+
+class Source(Enum):
+    """
+    新闻来源枚举类。
+    """
+
+    # 新浪新闻
+    SINA = "sina"
+    # 腾讯新闻
+    TENCENT = "tencent"
+    # 其他新闻
+    OTHER = "other"
 
 
 class News(Base):
@@ -12,17 +40,24 @@ class News(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     title = Column(String(255), nullable=False, comment="新闻标题")
-    url = Column(String(255), nullable=False, comment="新闻链接")
+    url = Column(String(255), nullable=False, unique=True, comment="新闻链接")
     content = Column(Text, nullable=True, comment="新闻内容")
     author = Column(String(100), nullable=True, comment="新闻作者")
-    media = Column(String(100), nullable=True, comment="媒体名称")
     intro = Column(Text, nullable=True, comment="新闻简介")
     publish_time = Column(DATE, nullable=True, comment="发布时间")
     media_name = Column(String(100), nullable=True, comment="媒体名称")
     images = Column(Text, nullable=True, comment="图片列表")
-    category = Column(Enum("hot", "latest_china"), nullable=False, comment="新闻分类")
+    category = Column(
+        sa.Enum(
+            NewsCategory, values_callable=lambda x: [e.value for e in NewsCategory]
+        ),
+        nullable=False,
+        comment="新闻分类",
+    )
     source = Column(
-        Enum("sina", "tencent", "other"), nullable=False, comment="新闻来源网站"
+        sa.Enum(Source, values_callable=lambda x: [e.value for e in Source]),
+        nullable=False,
+        comment="新闻来源网站",
     )
     create_time = Column(
         DATE, nullable=True, default=func.now(), comment="采集创建时间"
@@ -31,12 +66,5 @@ class News(Base):
         DATE, nullable=True, default=func.now(), comment="采集更新时间"
     )
 
-    def __repr__(self):
-        """
-        返回对象的字符串表示形式，用于调试和日志记录。
-        """
-        return (
-            f"<News(id={self.id}, title={self.title}, url={self.url}, "
-            f"category={self.category}, source={self.source}, "
-            f"create_time={self.create_time}, update_time={self.update_time})>"
-        )
+    # 添加唯一约束
+    __table_args__ = (UniqueConstraint("url", name="uq_news_url"),)

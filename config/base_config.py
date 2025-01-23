@@ -1,6 +1,7 @@
 from pathlib import Path
 import yaml
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from argon_log import logger
 
 # 项目根目录
 PROJECT_DIR: Path = Path(__file__).resolve().parent.parent
@@ -38,17 +39,17 @@ def load_settings() -> Settings:
     :return: Settings 实例
     """
     if CONFIG_DEV_FILE_PATH.exists():
-        print("加载开发环境配置文件：config_dev.yaml")
+        logger.info("加载开发环境配置文件：config_dev.yaml")
         return Settings.from_yaml(CONFIG_DEV_FILE_PATH)
     elif CONFIG_FILE_PATH.exists():
-        print("加载默认配置文件：config.yaml")
+        logger.info("加载默认配置文件：config.yaml")
         return Settings.from_yaml(CONFIG_FILE_PATH)
     else:
         raise FileNotFoundError("未找到配置文件：config_dev.yaml 或 config.yaml")
 
 
-# 加载配置
-settings = load_settings()
+# 加载配置并缓存到模块级变量
+settings: Settings = load_settings()
 
 if __name__ == "__main__":
     print(settings.model_dump())
