@@ -70,3 +70,17 @@ def generate_top_time(days_offset: int = 0) -> str:
     target_date = today + timedelta(days=days_offset)
     # 格式化日期为 `YYYYMMDD`
     return target_date.strftime("%Y%m%d")
+
+
+def convert_to_datetime(date_str: str) -> datetime:
+    """
+    将 ISO 8601 格式的字符串转换为 datetime 对象。
+
+    :param date_str: ISO 8601 格式的日期时间字符串（例如 "2025-01-22T15:56:31+08:00"）
+    :return: 转换后的 datetime 对象
+    """
+    try:
+        # 使用 datetime.fromisoformat 直接解析 ISO 8601 格式的字符串
+        return datetime.fromisoformat(date_str)
+    except ValueError as e:
+        raise ValueError(f"无法解析日期时间字符串：{date_str}") from e

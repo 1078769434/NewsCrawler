@@ -1,0 +1,2 @@
+# mysql
+MYSQL_DATABASE_URL: "mysql+aiomysql://root:password@localhost:3306/news_db"
