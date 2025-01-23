@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, DATE, func, UniqueConstraint
+from sqlalchemy import Column, Integer, String, Text, DateTime, func, UniqueConstraint
 
 from db.session import Base
 
@@ -27,6 +27,8 @@ class Source(Enum):
     SINA = "sina"
     # 腾讯新闻
     TENCENT = "tencent"
+    # 网易新闻
+    NETEASE = "netease"
     # 其他新闻
     OTHER = "other"
 
@@ -44,7 +46,7 @@ class News(Base):
     content = Column(Text, nullable=True, comment="新闻内容")
     author = Column(String(100), nullable=True, comment="新闻作者")
     intro = Column(Text, nullable=True, comment="新闻简介")
-    publish_time = Column(DATE, nullable=True, comment="发布时间")
+    publish_time = Column(DateTime, nullable=True, comment="发布时间")
     media_name = Column(String(100), nullable=True, comment="媒体名称")
     images = Column(Text, nullable=True, comment="图片列表")
     category = Column(
@@ -60,10 +62,10 @@ class News(Base):
         comment="新闻来源网站",
     )
     create_time = Column(
-        DATE, nullable=True, default=func.now(), comment="采集创建时间"
+        DateTime, nullable=True, default=func.now(), comment="采集创建时间"
     )
     update_time = Column(
-        DATE, nullable=True, default=func.now(), comment="采集更新时间"
+        DateTime, nullable=True, default=func.now(), comment="采集更新时间"
     )
 
     # 添加唯一约束
