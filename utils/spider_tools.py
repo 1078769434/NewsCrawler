@@ -2,6 +2,7 @@ import random
 
 import uuid
 import time
+from datetime import datetime, timedelta
 
 
 def get_random_headers():
@@ -54,3 +55,18 @@ def generate_timestamp():
     # 获取当前时间的秒级时间戳
     timestamp = int(time.time() * 1000)  # 乘以 1000 转换为毫秒
     return str(timestamp)
+
+
+def generate_top_time(days_offset: int = 0) -> str:
+    """
+    生成指定日期的 `top_time` 参数（格式为 `YYYYMMDD`）。
+
+    :param days_offset: 日期偏移量（默认为 0，表示今天）
+    :return: 格式化后的日期字符串（例如 "20250122"）
+    """
+    # 获取当前日期
+    today = datetime.now()
+    # 根据偏移量计算目标日期
+    target_date = today + timedelta(days=days_offset)
+    # 格式化日期为 `YYYYMMDD`
+    return target_date.strftime("%Y%m%d")
