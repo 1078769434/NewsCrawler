@@ -3,7 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from config import settings
 
-DATABASE_URL = settings.MYSQL_DATABASE_URL
+DATABASE_URL = settings.mysql.database_url
 
 async_engine = create_async_engine(DATABASE_URL, echo=settings.SQLALCHEMY_ECHO)
 

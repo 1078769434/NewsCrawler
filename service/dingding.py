@@ -12,7 +12,7 @@ from argon_log import logger
 
 
 class DingTalkNotifier:
-    def __init__(self, webhook_url: str, secret: str = None):
+    def __init__(self, webhook_url: str, secret: str = None, enabled: bool = False):
         """
         初始化钉钉通知器。
 
@@ -21,6 +21,7 @@ class DingTalkNotifier:
         """
         self.webhook_url = webhook_url
         self.secret = secret
+        self.enabled = enabled
 
     async def send_markdown_message(self, title: str, text: str):
         """
@@ -29,6 +30,9 @@ class DingTalkNotifier:
         :param title: 消息标题
         :param text: 消息内容（Markdown 格式）
         """
+        if not self.enabled:
+            logger.info("钉钉通知未开启，跳过发送消息。")
+            return
         try:
             # 构造消息体
             message = {

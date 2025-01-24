@@ -1,7 +1,9 @@
 from pathlib import Path
 import yaml
+from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from argon_log import logger
+
 
 # 项目根目录
 PROJECT_DIR: Path = Path(__file__).resolve().parent.parent
@@ -11,17 +13,29 @@ CONFIG_FILE_PATH: Path = PROJECT_DIR / "config.yaml"
 CONFIG_DEV_FILE_PATH: Path = PROJECT_DIR / "config_dev.yaml"
 
 
+# 嵌套配置模型
+class MySQLConfig(BaseModel):
+    database_url: str = "mysql+aiomysql://root:password@localhost:3306/news_db"
+
+
+class LoggingConfig(BaseModel):
+    level: str = "INFO"
+
+
+class DingTalkConfig(BaseModel):
+    enabled: bool = False
+    webhook_url: str = "https://oapi.dingtalk.com/robot/send?access_token="
+    secret: str = None  # 可选字段
+
+
 class Settings(BaseSettings):
     PROJECT_DIR: Path = PROJECT_DIR
-    # sqlalchemy echo
     SQLALCHEMY_ECHO: bool = False
 
-    MYSQL_DATABASE_URL: str = "mysql+aiomysql://root:password@localhost:3306/news_db"
-    # 日志等级
-    LOG_LEVEL: str = "INFO"
-    # 钉钉
-    WEBHOOK_URL: str = "https://oapi.dingtalk.com/robot/send?access_token="
-    SECRET: str = None
+    # 嵌套配置
+    mysql: MySQLConfig = MySQLConfig()
+    logging: LoggingConfig = LoggingConfig()
+    dingtalk: DingTalkConfig = DingTalkConfig()
 
     # 从 YAML 文件加载配置
     @classmethod

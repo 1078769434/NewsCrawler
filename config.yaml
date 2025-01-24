@@ -1,6 +1,11 @@
 # mysql
-MYSQL_DATABASE_URL: "mysql+aiomysql://root:password@localhost:3306/news_db"
+mysql:
+  database_url: "mysql+aiomysql://root:password@localhost:3306/news_db_dev"
+# 日志
+logging:
+  level: "INFO"
 # 钉钉
-WEBHOOK_URL: "https://oapi.dingtalk.com/robot/send?access_token="
-# 钉钉密钥 如在钉钉没有设置 则不需要设置
-# SECRET:
+dingtalk:
+  enabled: true
+  webhook_url: "https://oapi.dingtalk.com/robot/send?access_token=dev_token"
+  secret: "dev_secret"

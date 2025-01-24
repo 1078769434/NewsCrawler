@@ -8,7 +8,7 @@ from loguru import logger
 from loguru._defaults import LOGURU_FORMAT
 from config.base_config import settings
 
-LOG_LEVEL = settings.LOG_LEVEL
+LOG_LEVEL = settings.logging.level
 
 
 class InterceptHandler(logging.Handler):
