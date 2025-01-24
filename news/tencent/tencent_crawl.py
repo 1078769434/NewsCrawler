@@ -3,13 +3,14 @@
 import asyncio
 import json
 
+from base.base_spider import BaseSpider
 from news.tencent.data_parser import TencentNewsDataParser
 from news.tencent.request_handler import RequestHandler
 from argon_log import logger
 from parse.news_parse import get_news_content
 
 
-class TencentNewsSpider:
+class TencentNewsSpider(BaseSpider):
     def __init__(self):
         self.request_handler = RequestHandler()
         self.data_parser = TencentNewsDataParser()
@@ -17,7 +18,11 @@ class TencentNewsSpider:
         self.latest_china_news_url = ""
         self.hot_news_url = "https://i.news.qq.com/web_feed/getHotModuleList"
 
+    async def fetch_latest_china_news(self):
+        pass
+
     async def fetch_hot_news(self):
+        logger.info("开始抓取腾讯新闻热榜新闻...")
         data = {
             "base_req": {"from": "pc"},
             "forward": "2",
@@ -35,6 +40,7 @@ class TencentNewsSpider:
             # 并发请求新闻页面的 HTML
             tasks = [self.process_news(news) for news in hot_news_data]
             await asyncio.gather(*tasks)
+        logger.info("腾讯新闻热榜新闻抓取完成。")
 
     async def process_news(self, news):
         """

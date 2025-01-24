@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from base.base_spider import BaseSpider
 from model.news import NewsCategory, Source
 from news.sina.request_handler import RequestHandler
 from news.sina.data_parser import DataParser
@@ -10,7 +11,7 @@ from utils.spider_tools import generate_timestamp
 from save.database_handler import DatabaseHandler
 
 
-class SinaNewsSpider:
+class SinaNewsSpider(BaseSpider):
     def __init__(self):
         self.request_handler = RequestHandler()
         self.data_parser = DataParser()
@@ -18,10 +19,48 @@ class SinaNewsSpider:
         self.latest_china_news_url = "https://feed.sina.com.cn/api/roll/get"
         self.hot_news_url = "https://top.news.sina.com.cn/ws/GetTopDataList.php"
 
+    async def fetch_latest_china_news(self):
+        """
+        获取新浪新闻-国内最新新闻-列表并并发请求新闻页面的 HTML 内容。
+        """
+        logger.info("开始抓取新浪新闻-最新国内新闻...")
+        # 发送请求
+        params = {
+            "pageid": "121",
+            "lid": "1356",
+            "num": "20",
+            "versionNumber": "1.2.4",
+            "page": "1",
+            "encode": "utf-8",
+            "callback": "feedCardJsonpCallback",
+            "_": generate_timestamp(),
+        }
+        response_text = await self.request_handler.fetch_data(
+            self.latest_china_news_url, params
+        )
+        if response_text:
+            # 解析数据
+            json_data = self.data_parser.extract_china_new_json_from_jsonp(
+                response_text
+            )
+            if json_data:
+                news_data = self.data_parser.parse_news_data(json_data)
+                # 并发请求新闻页面的 HTML
+                tasks = [self.process_news(news) for news in news_data]
+                news_content = await asyncio.gather(*tasks)
+                # 批量插入或更新国内最新新闻数据到数据库
+                await self.database_handler.insert_or_update_news(
+                    news_content,
+                    category=NewsCategory.LATEST_CHINA.value,
+                    source=Source.SINA.value,
+                )
+        logger.info("新浪新闻-最新国内新闻抓取完成。")
+
     async def fetch_hot_news(self):
         """
         获取新浪新闻-热点新闻-列表并并发请求新闻页面的 HTML 内容。。
         """
+        logger.info("开始抓取新浪新闻-热点新闻...")
         hot_news_params = {
             "callback": "jQuery11110820057572079484_1737595214093",
             "top_type": "day",
@@ -54,41 +93,7 @@ class SinaNewsSpider:
                     category=NewsCategory.HOT.value,
                     source=Source.SINA.value,
                 )
-
-    async def fetch_latest_china_news(self):
-        """
-        获取新浪新闻-国内最新新闻-列表并并发请求新闻页面的 HTML 内容。
-        """
-        # 发送请求
-        params = {
-            "pageid": "121",
-            "lid": "1356",
-            "num": "20",
-            "versionNumber": "1.2.4",
-            "page": "1",
-            "encode": "utf-8",
-            "callback": "feedCardJsonpCallback",
-            "_": generate_timestamp(),
-        }
-        response_text = await self.request_handler.fetch_data(
-            self.latest_china_news_url, params
-        )
-        if response_text:
-            # 解析数据
-            json_data = self.data_parser.extract_china_new_json_from_jsonp(
-                response_text
-            )
-            if json_data:
-                news_data = self.data_parser.parse_news_data(json_data)
-                # 并发请求新闻页面的 HTML
-                tasks = [self.process_news(news) for news in news_data]
-                news_content = await asyncio.gather(*tasks)
-                # 批量插入或更新国内最新新闻数据到数据库
-                await self.database_handler.insert_or_update_news(
-                    news_content,
-                    category=NewsCategory.LATEST_CHINA.value,
-                    source=Source.SINA.value,
-                )
+        logger.info("新浪新闻-热点新闻抓取完成。")
 
     async def process_news(self, news):
         """

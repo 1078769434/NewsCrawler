@@ -61,10 +61,10 @@ def load_settings() -> Settings:
     :return: Settings 实例
     """
     if CONFIG_DEV_FILE_PATH.exists():
-        logger.info("加载开发环境配置文件：config_dev.yaml")
+        logger.debug("加载开发环境配置文件：config_dev.yaml")
         return Settings.from_yaml(CONFIG_DEV_FILE_PATH)
     elif CONFIG_FILE_PATH.exists():
-        logger.info("加载默认配置文件：config.yaml")
+        logger.debug("加载默认配置文件：config.yaml")
         return Settings.from_yaml(CONFIG_FILE_PATH)
     else:
         raise FileNotFoundError("未找到配置文件：config_dev.yaml 或 config.yaml")

@@ -16,8 +16,11 @@ class ToutiaoNewsSpider(BaseSpider):
         self.latest_china_news_url = ""
         self.hot_news_url = "https://www.toutiao.com/hot-event/hot-board/"
 
+    async def fetch_latest_china_news(self):
+        pass
+
     async def fetch_hot_news(self):
-        logger.info("正在获取今日头条热门新闻...")
+        logger.info("开始抓取今日头条-热门新闻...")
         params = {
             "origin": "toutiao_pc",
             # "_signature": "_02B4Z6wo00f01zCjrTwAAIDD79TLJfBpgx8wh6mAAKvGlA8g8INgcfWNteRcVVCYirt6dvWO661iA3hGkslo4f2VNcGJyecAN3JBMqbKZnuO2Iwt6zNLi9cvCrJe-bpO1.oM4gAAEPUCmDk-16"
@@ -32,9 +35,7 @@ class ToutiaoNewsSpider(BaseSpider):
                 # 并发请求新闻页面的 HTML
                 tasks = [self.process_news(news) for news in json_data]
                 await asyncio.gather(*tasks)
-
-    async def fetch_latest_china_news(self):
-        pass
+        logger.info("今日头条-热门新闻抓取完成")
 
     async def process_news(self, news):
         """

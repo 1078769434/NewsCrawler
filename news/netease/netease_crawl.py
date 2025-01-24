@@ -3,13 +3,14 @@
 import asyncio
 
 from argon_log import logger
+from base.base_spider import BaseSpider
 from news.netease.request_handler import RequestHandler
 from news.netease.data_parser import TencentNewsDataParser
 from parse.news_parse import get_news_content
 from save.database_handler import DatabaseHandler
 
 
-class NeteaseNewsSpider:
+class NeteaseNewsSpider(BaseSpider):
     def __init__(self):
         self.request_handler = RequestHandler()
         self.data_parser = TencentNewsDataParser()
