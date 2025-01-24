@@ -4,6 +4,7 @@
 import httpx
 from argon_log import logger
 from typing import Optional, Dict, Any
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception_type
 
 
 class RequestHandler:
@@ -19,6 +20,14 @@ class RequestHandler:
         self.headers = headers
         self.cookies = cookies or {}
 
+    # 重试配置
+    @retry(
+        stop=stop_after_attempt(3),  # 最多重试 3 次
+        wait=wait_fixed(1),  # 每次重试间隔 1 秒
+        retry=retry_if_exception_type(
+            (httpx.HTTPStatusError, Exception)
+        ),  # 仅在 HTTP 错误或请求错误时重试
+    )
     async def fetch_data_get(
         self, url: str, params: Optional[Dict[str, Any]] = None
     ) -> Optional[str]:
@@ -42,6 +51,14 @@ class RequestHandler:
             logger.error(f"GET 请求时发生错误: {e}, URL: {url}")
         return None
 
+    # 重试配置
+    @retry(
+        stop=stop_after_attempt(3),  # 最多重试 3 次
+        wait=wait_fixed(1),  # 每次重试间隔 1 秒
+        retry=retry_if_exception_type(
+            (httpx.HTTPStatusError, Exception)
+        ),  # 仅在 HTTP 错误或请求错误时重试
+    )
     async def fetch_data_post(
         self,
         url: str,
