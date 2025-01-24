@@ -74,13 +74,47 @@ def generate_top_time(days_offset: int = 0) -> str:
 
 def convert_to_datetime(date_str: str) -> datetime:
     """
-    将 ISO 8601 格式的字符串转换为 datetime 对象。
+    将日期时间字符串转换为 datetime 对象，支持多种格式。
 
-    :param date_str: ISO 8601 格式的日期时间字符串（例如 "2025-01-22T15:56:31+08:00"）
+    :param date_str: 日期时间字符串
     :return: 转换后的 datetime 对象
+    :raises ValueError: 如果无法解析日期时间字符串
     """
+    # 尝试解析 ISO 8601 格式
     try:
-        # 使用 datetime.fromisoformat 直接解析 ISO 8601 格式的字符串
         return datetime.fromisoformat(date_str)
-    except ValueError as e:
-        raise ValueError(f"无法解析日期时间字符串：{date_str}") from e
+    except ValueError:
+        pass  # 如果不是 ISO 8601 格式，继续尝试自定义格式
+
+    # 支持多种自定义格式
+    custom_formats = [
+        "%Y年%m月%d日 %H:%M:%S",  # 格式1：2025年01月24日 13:28:33
+        "%Y-%m-%d %H:%M:%S",  # 格式2：2025-01-24 13:28:33
+        "%Y/%m/%d %H:%M:%S",  # 格式3：2025/01/24 13:28:33
+        "%Y%m%d %H:%M:%S",  # 格式4：20250124 13:28:33
+        "%Y年%m月%d日 %H:%M",  # 格式5：2025年01月24日 13:28
+        "%Y-%m-%d %H:%M",  # 格式6：2025-01-24 13:28
+        "%Y/%m/%d %H:%M",  # 格式7：2025/01/24 13:28
+        "%Y%m%d %H:%M",  # 格式8：20250124 13:28
+        "%Y年%m月%d日",  # 格式9：2025年01月24日
+        "%Y-%m-%d",  # 格式10：2025-01-24
+        "%Y/%m/%d",  # 格式11：2025/01/24
+        "%Y%m%d",  # 格式12：20250124
+        "%m/%d/%Y %H:%M:%S",  # 格式13：01/24/2025 13:28:33
+        "%m/%d/%Y %I:%M:%S %p",  # 格式14：01/24/2025 01:28:33 PM
+        "%d/%m/%Y %H:%M:%S",  # 格式15：24/01/2025 13:28:33
+        "%d/%m/%Y %I:%M:%S %p",  # 格式16：24/01/2025 01:28:33 PM
+        "%b %d, %Y %H:%M:%S",  # 格式17：Jan 24, 2025 13:28:33
+        "%b %d, %Y %I:%M:%S %p",  # 格式18：Jan 24, 2025 01:28:33 PM
+        "%d %b %Y %H:%M:%S",  # 格式19：24 Jan 2025 13:28:33
+        "%d %b %Y %I:%M:%S %p",  # 格式20：24 Jan 2025 01:28:33 PM
+    ]
+
+    for fmt in custom_formats:
+        try:
+            return datetime.strptime(date_str, fmt)
+        except ValueError:
+            continue  # 如果当前格式不匹配，尝试下一个格式
+
+    # 如果所有格式都无法解析，抛出异常
+    raise ValueError(f"无法解析日期时间字符串：{date_str}")
