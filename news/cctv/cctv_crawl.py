@@ -5,13 +5,13 @@ import asyncio
 from argon_log import logger
 from base.base_spider import BaseSpider
 from news.cctv.data_parser import CCTVNewsDataParser
-from news.cctv.request_handler import RequestHandler
+from news.cctv.request_handler import cctv_request_handler
 from parse.news_parse import get_news_content
 
 
 class CCTVNewsSpider(BaseSpider):
     def __init__(self):
-        self.request_handler = RequestHandler()
+        self.request_handler = cctv_request_handler
         self.data_parser = CCTVNewsDataParser()
         self.latest_china_news_url = (
             "https://news.cctv.com/2019/07/gaiban/cmsdatainterface/page/china_1.jsonp"
@@ -23,7 +23,7 @@ class CCTVNewsSpider(BaseSpider):
 
     async def fetch_latest_china_news(self):
         logger.info("开始抓取CCTV新闻-最新国内新闻...")
-        response_text = await self.request_handler.fetch_data(
+        response_text = await self.request_handler.fetch_data_get(
             self.latest_china_news_url
         )
         if response_text:
@@ -41,7 +41,7 @@ class CCTVNewsSpider(BaseSpider):
         :param news: 单条新闻数据
         """
         # 获取新闻页面的 HTML
-        news_html = await self.request_handler.fetch_data(news["url"])
+        news_html = await self.request_handler.fetch_data_get(news["url"])
         if news_html:
             news_content = get_news_content(news_html)
             news_content["url"] = news["url"]
