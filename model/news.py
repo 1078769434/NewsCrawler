@@ -16,6 +16,8 @@ class NewsCategory(Enum):
     HOT = "hot"
     # 国内最新新闻
     LATEST_CHINA = "latest_china"
+    # 国际最新新闻
+    LATEST_INTERNATIONAL = "latest_international"
 
 
 class Source(Enum):
@@ -29,8 +31,10 @@ class Source(Enum):
     TENCENT = "tencent"
     # 网易新闻
     NETEASE = "netease"
-    # 其他新闻
-    OTHER = "other"
+    # 央视新闻
+    CCTV = "cctv"
+    # 今日头条
+    TOUTIAO = "toutiao"
 
 
 class News(Base):
