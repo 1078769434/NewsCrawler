@@ -29,16 +29,56 @@ class CCTVNewsSpider(BaseSpider):
         )
 
     async def fetch_hot_news(self):
-        pass
+        """
+        抓取CCTV新闻-热门新闻。
+        """
+        # 如果热门新闻 URL 未设置，直接返回
+        if not self.hot_news_url:
+            logger.warning("热门新闻 URL 未设置，跳过抓取。")
+            return
+
+        await self.fetch_and_process_news(
+            url=self.hot_news_url,
+            category=NewsCategory.HOT.value,
+            source=Source.CCTV.value,
+            log_prefix="CCTV新闻-热门新闻",
+            parse_method=self.data_parser.parse_hot_news_data,
+        )
 
     async def fetch_latest_china_news(self):
-        logger.info("开始抓取CCTV新闻-最新国内新闻...")
-        response_text = await self.request_handler.fetch_data_get(
-            self.latest_china_news_url
+        """
+        抓取CCTV新闻-最新国内新闻。
+        """
+        await self.fetch_and_process_news(
+            url=self.latest_china_news_url,
+            category=NewsCategory.LATEST_CHINA.value,
+            source=Source.CCTV.value,
+            log_prefix="CCTV新闻-最新国内新闻",
+            parse_method=self.data_parser.extract_json_from_china,
         )
+
+    async def fetch_and_process_news(
+        self,
+        url: str,
+        category: str,
+        source: str,
+        log_prefix: str,
+        parse_method: callable,
+    ):
+        """
+        抓取并处理新闻数据。
+
+        :param url: 新闻数据的 URL
+        :param category: 新闻分类
+        :param source: 新闻来源
+        :param log_prefix: 日志前缀
+        :param parse_method: 解析数据的方法
+        """
+        logger.info(f"开始抓取{log_prefix}...")
+        response_text = await self.request_handler.fetch_data_get(url)
         if response_text:
             # 解析数据
-            json_data = self.data_parser.extract_json_from_china(response_text)
+            json_data = parse_method(response_text)
             if json_data:
                 # 并发请求新闻页面的 HTML
                 tasks = [self.process_news(news) for news in json_data]
@@ -47,21 +87,22 @@ class CCTVNewsSpider(BaseSpider):
                 # 过滤掉空值（抓取失败的新闻）
                 news_content = [news for news in news_content if news]
 
-                # 批量插入或更新国内最新新闻数据到数据库
+                # 批量插入或更新新闻数据到数据库
                 await self.database_handler.insert_or_update_news(
                     news_content,
-                    category=NewsCategory.LATEST_CHINA.value,
-                    source=Source.CCTV.value,
+                    category=category,
+                    source=source,
                 )
 
                 # 记录抓取的新闻数量
-                logger.info(f"成功抓取 {len(news_content)} 条CCTV新闻-最新国内新闻。")
+                logger.info(f"成功抓取 {len(news_content)} 条{log_prefix}。")
 
                 # 发送整合后的新闻通知
-                await self.dingtalk_notifier.send_combined_news_notification(
-                    news_content, title="CCTV新闻-最新国内新闻汇总"
-                )
-        logger.info("CCTV新闻-最新国内新闻抓取完成。")
+                if self.dingtalk_notifier.enabled:
+                    await self.dingtalk_notifier.send_combined_news_notification(
+                        news_content, title=f"{log_prefix}汇总"
+                    )
+        logger.info(f"{log_prefix}抓取完成。")
 
     async def process_news(self, news):
         """
