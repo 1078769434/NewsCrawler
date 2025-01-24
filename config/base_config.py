@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     SQLALCHEMY_ECHO: bool = False
 
     MYSQL_DATABASE_URL: str = "mysql+aiomysql://root:password@localhost:3306/news_db"
+    # 日志等级
+    LOG_LEVEL: str = "INFO"
 
     # 从 YAML 文件加载配置
     @classmethod

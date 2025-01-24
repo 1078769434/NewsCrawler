@@ -6,8 +6,9 @@ from pprint import pformat
 
 from loguru import logger
 from loguru._defaults import LOGURU_FORMAT
+from config.base_config import settings
 
-LOG_LEVEL = "DEBUG"
+LOG_LEVEL = settings.LOG_LEVEL
 
 
 class InterceptHandler(logging.Handler):
