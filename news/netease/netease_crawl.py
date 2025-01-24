@@ -27,6 +27,7 @@ class NeteaseNewsSpider:
                 # 并发请求新闻页面的 HTML
                 tasks = [self.process_news(news) for news in json_data]
                 await asyncio.gather(*tasks)
+        logger.info("网易新闻-热门新闻抓取完成。")
 
     async def fetch_latest_china_news(self):
         logger.info("开始抓取网易新闻-最新国内新闻...")
@@ -40,6 +41,7 @@ class NeteaseNewsSpider:
                 # 并发请求新闻页面的 HTML
                 tasks = [self.process_news(news) for news in json_data]
                 await asyncio.gather(*tasks)
+        logger.info("网易新闻-最新国内新闻抓取完成。")
 
     async def process_news(self, news):
         """
@@ -52,7 +54,7 @@ class NeteaseNewsSpider:
         if news_html:
             news_content = get_news_content(news_html)
             news_content["url"] = news["docurl"]
-            logger.info(f"网易新闻 HTML 解析成功:{news_content}")
+            logger.debug(f"网易新闻:{news_content}")
             return news_content
         else:
             logger.error(f"获取网易新闻 HTML 失败: {news['url']}")

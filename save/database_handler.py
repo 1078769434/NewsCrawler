@@ -114,7 +114,9 @@ class DatabaseHandler:
                 existing_record.images = str(news_data.get("images"))
                 existing_record.category = category
                 existing_record.source = source
-                logger.info(f"新闻数据更新成功：{existing_record.title}")
+                logger.info(
+                    f"新闻数据更新成功-新闻发布时间{existing_record.publish_time}：{existing_record.title}"
+                )
             else:
                 # 如果记录不存在，创建新的 ORM 对象
                 news = News(
@@ -131,6 +133,8 @@ class DatabaseHandler:
                 )
                 # 添加新记录
                 db.add(news)
-                logger.info(f"新闻数据插入成功：{news.title}")
+                logger.info(
+                    f"新闻数据插入成功-新闻发布时间{news.publish_time}：{news.title}"
+                )
         # 提交事务
         await db.commit()
