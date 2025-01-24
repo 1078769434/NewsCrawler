@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     MYSQL_DATABASE_URL: str = "mysql+aiomysql://root:password@localhost:3306/news_db"
     # 日志等级
     LOG_LEVEL: str = "INFO"
+    # 钉钉
+    WEBHOOK_URL: str = "https://oapi.dingtalk.com/robot/send?access_token="
+    SECRET: str = None
 
     # 从 YAML 文件加载配置
     @classmethod
