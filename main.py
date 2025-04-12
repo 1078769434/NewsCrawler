@@ -4,6 +4,7 @@ from datetime import datetime
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
+from news.baidu.baidu_crawl import BaiduNewsSpider
 from news.cctv.cctv_crawl import CCTVNewsSpider
 from news.netease.netease_crawl import NeteaseNewsSpider
 from news.sina.sina_crawl import SinaNewsSpider
@@ -31,6 +32,8 @@ async def run_spider(spider_name: str, news_type: str):
         spider = TencentNewsSpider()
     elif spider_name == "toutiao":
         spider = ToutiaoNewsSpider()
+    elif spider_name == "baidu":
+        spider = BaiduNewsSpider()
     else:
         raise ValueError(f"未知的爬虫名称: {spider_name}")
 

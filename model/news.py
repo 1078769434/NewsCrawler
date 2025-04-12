@@ -35,6 +35,8 @@ class Source(Enum):
     CCTV = "cctv"
     # 今日头条
     TOUTIAO = "toutiao"
+    # 百度新闻
+    BAIDU = "baidu"
 
 
 class News(Base):

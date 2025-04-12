@@ -2,8 +2,6 @@ from pathlib import Path
 import yaml
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from argon_log import logger
-
 
 # 项目根目录
 PROJECT_DIR: Path = Path(__file__).resolve().parent.parent
@@ -23,8 +21,14 @@ class LoggingConfig(BaseModel):
 
 
 class DingTalkConfig(BaseModel):
-    enabled: bool = False
+    enabled: bool = True
     webhook_url: str = "https://oapi.dingtalk.com/robot/send?access_token="
+    secret: str = None  # 可选字段
+
+
+class FeiShuConfig(BaseModel):
+    enabled: bool = True
+    webhook_url: str = ""
     secret: str = None  # 可选字段
 
 
@@ -36,6 +40,7 @@ class Settings(BaseSettings):
     mysql: MySQLConfig = MySQLConfig()
     logging: LoggingConfig = LoggingConfig()
     dingtalk: DingTalkConfig = DingTalkConfig()
+    feishutalk: FeiShuConfig = FeiShuConfig()
 
     # 从 YAML 文件加载配置
     @classmethod
@@ -61,10 +66,8 @@ def load_settings() -> Settings:
     :return: Settings 实例
     """
     if CONFIG_DEV_FILE_PATH.exists():
-        logger.debug("加载开发环境配置文件：config_dev.yaml")
         return Settings.from_yaml(CONFIG_DEV_FILE_PATH)
     elif CONFIG_FILE_PATH.exists():
-        logger.debug("加载默认配置文件：config.yaml")
         return Settings.from_yaml(CONFIG_FILE_PATH)
     else:
         raise FileNotFoundError("未找到配置文件：config_dev.yaml 或 config.yaml")
