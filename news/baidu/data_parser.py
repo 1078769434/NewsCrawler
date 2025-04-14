@@ -28,4 +28,4 @@ class BaiDuNewsDataParser:
             description = desc_tag.text.strip() if desc_tag else None
             if title and url:
                 results.append({"title": title, "description": description, "url": url})
-        return results
+        return results[:10]

@@ -26,7 +26,7 @@ class BaiduNewsSpider(BaseSpider):
 
     async def fetch_latest_china_news(self):
         """
-        抓取CCTV新闻-最新国内新闻。
+        抓取baidu新闻-最新国内新闻。
         """
         await self.fetch_and_process_news(
             url=self.latest_china_news_url,
