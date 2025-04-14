@@ -37,6 +37,10 @@ class Source(Enum):
     TOUTIAO = "toutiao"
     # 百度新闻
     BAIDU = "baidu"
+    # 澎湃新闻
+    PENGUIN = "penguin"
+    # 知乎
+    ZHIHU = "zhihu"
 
 
 class News(Base):
