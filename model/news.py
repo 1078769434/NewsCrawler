@@ -41,6 +41,8 @@ class Source(Enum):
     PENGUIN = "penguin"
     # 知乎
     ZHIHU = "zhihu"
+    # 微博
+    WEIBO = "weibo"
 
 
 class News(Base):
