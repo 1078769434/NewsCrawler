@@ -4,12 +4,14 @@ import asyncio
 import json
 
 from base.base_spider import BaseSpider
+from config import settings
 from model.news import NewsCategory, Source
 from news.tencent.data_parser import TencentNewsDataParser
 from news.tencent.request_handler import RequestHandler
 from argon_log import logger
 from parse.news_parse import get_news_content
 from save.database_handler import DatabaseHandler
+from service.feishu import FeishuNotifier
 
 
 class TencentNewsSpider(BaseSpider):
@@ -19,6 +21,10 @@ class TencentNewsSpider(BaseSpider):
         self.database_handler = DatabaseHandler()
         self.latest_china_news_url = ""
         self.hot_news_url = "https://i.news.qq.com/web_feed/getHotModuleList"
+        self.feishu_notifier = FeishuNotifier(
+            webhook_url=settings.feishutalk.webhook_url,
+            enabled=settings.feishutalk.enabled,
+        )
 
     async def fetch_latest_china_news(self):
         pass
@@ -86,6 +92,10 @@ class TencentNewsSpider(BaseSpider):
                     source=source,
                 )
                 logger.info(f"成功抓取 {len(news_content)} 条{log_prefix}。")
+                if self.feishu_notifier.enabled:
+                    await self.feishu_notifier.send_combined_news_notification(
+                        news_content, title=f"{log_prefix}汇总"
+                    )
         logger.info(f"{log_prefix}抓取完成。")
 
     async def process_news(self, news):
