@@ -63,7 +63,7 @@ class BaiduNewsSpider(BaseSpider):
             logger.info(f"{news_content}")
             # 发送整合后的新闻通知
             if self.feishu_talk_notifier.enabled:
-                await self.feishu_talk_notifier.send_pro_news_card(news_content)
+                await self.feishu_talk_notifier.send_multi_news_card(news_content)
         logger.info(f"{log_prefix}抓取完成。")
 
     async def fetch_hot_news(self):
