@@ -16,3 +16,4 @@ venv/
 .vscode/
 .idea/
 /config_dev.yaml
+/data/
