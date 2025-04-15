@@ -38,7 +38,7 @@ class Source(Enum):
     # 百度新闻
     BAIDU = "baidu"
     # 澎湃新闻
-    PENGUIN = "penguin"
+    THE_PAPER = "the_paper"
     # 知乎
     ZHIHU = "zhihu"
     # 微博

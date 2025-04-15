@@ -37,7 +37,7 @@ class ThePaperNewsSpider(BaseSpider):
         await self.fetch_and_process_news(
             url=self.hot_news_url,
             category=NewsCategory.HOT.value,
-            source=Source.BAIDU.value,
+            source=Source.THE_PAPER.value,
             log_prefix="澎湃新闻-热门新闻",
             parse_method=self.data_parser.parse_hot_news_data,
         )
