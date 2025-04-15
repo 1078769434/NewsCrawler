@@ -32,6 +32,11 @@ class FeiShuConfig(BaseModel):
     secret: str = None  # 可选字段
 
 
+class NewsStorageConfig(BaseModel):
+    enabled: bool = False  # 默认为不开启
+    output_format: str = "json"  # 默认使用 JSON，可以配置为 "csv"
+
+
 class Settings(BaseSettings):
     PROJECT_DIR: Path = PROJECT_DIR
     SQLALCHEMY_ECHO: bool = False
@@ -41,6 +46,7 @@ class Settings(BaseSettings):
     logging: LoggingConfig = LoggingConfig()
     dingtalk: DingTalkConfig = DingTalkConfig()
     feishutalk: FeiShuConfig = FeiShuConfig()
+    storage: NewsStorageConfig = NewsStorageConfig()
 
     # 从 YAML 文件加载配置
     @classmethod
