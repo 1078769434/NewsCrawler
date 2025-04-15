@@ -9,7 +9,6 @@ from news.tencent.data_parser import TencentNewsDataParser
 from news.tencent.request_handler import RequestHandler
 from argon_log import logger
 from parse.news_parse import get_news_content
-from save.database_handler import DatabaseHandler
 
 
 class TencentNewsSpider(BaseSpider):
@@ -17,7 +16,6 @@ class TencentNewsSpider(BaseSpider):
         super().__init__()  # 调用基类初始化
         self.request_handler = RequestHandler()
         self.data_parser = TencentNewsDataParser()
-        self.database_handler = DatabaseHandler()
         self.latest_china_news_url = ""
         self.hot_news_url = "https://i.news.qq.com/web_feed/getHotModuleList"
 
@@ -77,13 +75,13 @@ class TencentNewsSpider(BaseSpider):
 
                 # 过滤掉空值（抓取失败的新闻）
                 news_content = [news for news in news_content if news]
-
-                # 批量插入或更新新闻数据到数据库
-                await self.database_handler.insert_or_update_news(
-                    news_content,
-                    category=category,
-                    source=source,
-                )
+                if self.to_database:
+                    # 批量插入或更新新闻数据到数据库
+                    await self.database_handler.insert_or_update_news(
+                        news_content,
+                        category=category,
+                        source=source,
+                    )
                 logger.info(f"成功抓取 {len(news_content)} 条{log_prefix}。")
                 # 保存新闻内容
                 if self.storage_enabled:
@@ -94,8 +92,8 @@ class TencentNewsSpider(BaseSpider):
                         logger.info(f"{log_prefix} 已保存到文件: {filepath}")
                     except Exception as e:
                         logger.error(f"{log_prefix} 保存新闻数据失败: {e}")
-                if self.feishu_notifier.enabled:
-                    await self.feishu_notifier.send_combined_news_notification(
+                if self.feishu_talk_notifier.enabled:
+                    await self.feishu_talk_notifier.send_combined_news_notification(
                         news_content, title=f"{log_prefix}汇总"
                     )
         logger.info(f"{log_prefix}抓取完成。")

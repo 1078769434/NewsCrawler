@@ -35,6 +35,7 @@ class FeiShuConfig(BaseModel):
 class NewsStorageConfig(BaseModel):
     enabled: bool = False  # 默认为不开启
     output_format: str = "json"  # 默认使用 JSON，可以配置为 "csv"
+    to_database: bool = False  # ✅ 是否保存到数据库，默认不开启
 
 
 class Settings(BaseSettings):

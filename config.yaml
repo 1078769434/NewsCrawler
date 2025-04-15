@@ -18,3 +18,4 @@ feishutalk:
 storage:
   enabled: true # 是否开启
   output_format: "json" # 输出格式 csv json
+  to_database: true  # 是否保存到数据库

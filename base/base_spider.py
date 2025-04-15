@@ -3,6 +3,7 @@
 import abc
 
 from config import settings
+from save.database_handler import DatabaseHandler
 from save.storage import NewsStorage
 from service.dingding import DingTalkNotifier
 from service.feishu import FeishuNotifier
@@ -25,7 +26,11 @@ class BaseSpider(abc.ABC):
 
         # 初始化保存器
         self.storage_enabled = settings.storage.enabled
+        self.to_database = settings.storage.to_database
         self.storage_handler = NewsStorage(output_format=settings.storage.output_format)
+
+        # 初始化数据库处理器
+        self.database_handler = DatabaseHandler()
 
     # 获取热门新闻
     @abc.abstractmethod

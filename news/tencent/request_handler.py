@@ -51,10 +51,13 @@ class RequestHandler:
             "lcad_LDERturn": "260",
         }
 
-    async def fetch_post_data(self, url: str, data: dict = None) -> Optional[dict]:
+    async def fetch_post_data(
+        self, url: str, data: dict | str = None
+    ) -> Optional[dict]:
         """
         发送 HTTP 请求并返回响应内容。
 
+        :param data: 请求体
         :param url: 请求的 URL
         :param params: 请求参数
         :return: 响应内容（字符串）
