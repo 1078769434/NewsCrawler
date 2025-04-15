@@ -19,6 +19,7 @@ pydantic-settings = "^2.7.1"
 bs4 = "^0.0.2"
 apscheduler = "^3.11.0"
 tenacity = "^9.0.0"
+cryptography = "^44.0.2"
 
 
 [build-system]
