@@ -12,6 +12,7 @@ from save.database_handler import DatabaseHandler
 
 class ToutiaoNewsSpider(BaseSpider):
     def __init__(self):
+        super().__init__()  # 调用基类初始化
         self.request_handler = toutiao_request_handler
         self.data_parser = ToutiaoNewsDataParser()
         self.database_handler = DatabaseHandler()
@@ -76,6 +77,16 @@ class ToutiaoNewsSpider(BaseSpider):
                     category=category,
                     source=source,
                 )
+                # 保存新闻内容
+                if self.storage_enabled:
+                    try:
+                        filepath = self.storage_handler.save(
+                            news_content, source_name=source
+                        )
+                        logger.info(f"{log_prefix} 已保存到文件: {filepath}")
+                    except Exception as e:
+                        logger.error(f"{log_prefix} 保存新闻数据失败: {e}")
+
                 logger.info(f"成功抓取 {len(news_content)} 条{log_prefix}。")
         logger.info(f"{log_prefix}抓取完成。")
 

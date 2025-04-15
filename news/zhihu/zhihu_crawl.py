@@ -5,23 +5,18 @@ import asyncio
 from argon_log import logger
 
 from base.base_spider import BaseSpider
-from config import settings
 from model.news import NewsCategory, Source
 from news.zhihu.data_parser import ZhiHuNewsDataParser
 from news.zhihu.request_handler import zhihu_request_handler
-from service.feishu import FeishuNotifier
 
 
 class ZhiHuNewsSpider(BaseSpider):
     def __init__(self):
+        super().__init__()  # 调用基类初始化
         self.request_handler = zhihu_request_handler
         self.data_parser = ZhiHuNewsDataParser()
         self.latest_china_news_url = ""
         self.hot_news_url = "https://www.zhihu.com/hot"
-        self.feishu_talk_notifier = FeishuNotifier(
-            webhook_url=settings.feishutalk.webhook_url,  # 替换为你的钉钉 Webhook URL
-            secret=settings.feishutalk.secret,
-        )
 
     async def fetch_latest_china_news(self):
         pass
@@ -43,13 +38,21 @@ class ZhiHuNewsSpider(BaseSpider):
         log_prefix: str,
         parse_method: callable,
     ):
-        pass
         logger.info(f"开始抓取{log_prefix}...")
         response_text = await self.request_handler.fetch_data_get(url)
         if response_text:
             # 解析数据
             news_content = parse_method(response_text)
             logger.info(f"{news_content}")
+            # 保存新闻内容
+            if self.storage_enabled:
+                try:
+                    filepath = self.storage_handler.save(
+                        news_content, source_name=source
+                    )
+                    logger.info(f"{log_prefix} 已保存到文件: {filepath}")
+                except Exception as e:
+                    logger.error(f"{log_prefix} 保存新闻数据失败: {e}")
             # 发送整合后的新闻通知
             if self.feishu_talk_notifier.enabled:
                 await self.feishu_talk_notifier.send_multi_news_card(news_content)

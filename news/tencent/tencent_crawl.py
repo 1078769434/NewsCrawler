@@ -4,27 +4,22 @@ import asyncio
 import json
 
 from base.base_spider import BaseSpider
-from config import settings
 from model.news import NewsCategory, Source
 from news.tencent.data_parser import TencentNewsDataParser
 from news.tencent.request_handler import RequestHandler
 from argon_log import logger
 from parse.news_parse import get_news_content
 from save.database_handler import DatabaseHandler
-from service.feishu import FeishuNotifier
 
 
 class TencentNewsSpider(BaseSpider):
     def __init__(self):
+        super().__init__()  # 调用基类初始化
         self.request_handler = RequestHandler()
         self.data_parser = TencentNewsDataParser()
         self.database_handler = DatabaseHandler()
         self.latest_china_news_url = ""
         self.hot_news_url = "https://i.news.qq.com/web_feed/getHotModuleList"
-        self.feishu_notifier = FeishuNotifier(
-            webhook_url=settings.feishutalk.webhook_url,
-            enabled=settings.feishutalk.enabled,
-        )
 
     async def fetch_latest_china_news(self):
         pass
@@ -33,20 +28,9 @@ class TencentNewsSpider(BaseSpider):
         """
         抓取腾讯新闻热榜新闻。
         """
-        data = {
-            "base_req": {"from": "pc"},
-            "forward": "2",
-            "qimei36": "0_FpZFnxfEm2k23",
-            "device_id": "0_FpZFnxfEm2k23",
-            "flush_num": 1,
-            "channel_id": "news_news_top",
-            "item_count": 20,
-        }
-        data = json.dumps(data, separators=(",", ":"))
 
         await self.fetch_and_process_news(
             url=self.hot_news_url,
-            data=data,
             category=NewsCategory.HOT.value,
             source=Source.TENCENT.value,
             log_prefix="腾讯新闻热榜新闻",
@@ -56,7 +40,6 @@ class TencentNewsSpider(BaseSpider):
     async def fetch_and_process_news(
         self,
         url: str,
-        data: str,
         category: str,
         source: str,
         log_prefix: str,
@@ -73,6 +56,16 @@ class TencentNewsSpider(BaseSpider):
         :param parse_method: 解析数据的方法
         """
         logger.info(f"开始抓取{log_prefix}...")
+        data = {
+            "base_req": {"from": "pc"},
+            "forward": "2",
+            "qimei36": "0_FpZFnxfEm2k23",
+            "device_id": "0_FpZFnxfEm2k23",
+            "flush_num": 1,
+            "channel_id": "news_news_top",
+            "item_count": 20,
+        }
+        data = json.dumps(data, separators=(",", ":"))
         json_data = await self.request_handler.fetch_post_data(url, data)
         if json_data:
             # 解析数据
@@ -92,6 +85,15 @@ class TencentNewsSpider(BaseSpider):
                     source=source,
                 )
                 logger.info(f"成功抓取 {len(news_content)} 条{log_prefix}。")
+                # 保存新闻内容
+                if self.storage_enabled:
+                    try:
+                        filepath = self.storage_handler.save(
+                            news_content, source_name=source
+                        )
+                        logger.info(f"{log_prefix} 已保存到文件: {filepath}")
+                    except Exception as e:
+                        logger.error(f"{log_prefix} 保存新闻数据失败: {e}")
                 if self.feishu_notifier.enabled:
                     await self.feishu_notifier.send_combined_news_notification(
                         news_content, title=f"{log_prefix}汇总"

@@ -10,11 +10,12 @@ from news.cctv.data_parser import CCTVNewsDataParser
 from news.cctv.request_handler import cctv_request_handler
 from parse.news_parse import get_news_content
 from save.database_handler import DatabaseHandler
-from service.dingding import DingTalkNotifier  # 导入钉钉通知类
+from save.storage import NewsStorage
 
 
 class CCTVNewsSpider(BaseSpider):
     def __init__(self):
+        super().__init__()  # 调用基类初始化
         self.request_handler = cctv_request_handler
         self.data_parser = CCTVNewsDataParser()
         self.database_handler = DatabaseHandler()  # 初始化数据库操作模块
@@ -22,11 +23,8 @@ class CCTVNewsSpider(BaseSpider):
             "https://news.cctv.com/2019/07/gaiban/cmsdatainterface/page/china_1.jsonp"
         )
         self.hot_news_url = ""
-        self.dingtalk_notifier = DingTalkNotifier(
-            webhook_url=settings.dingtalk.webhook_url,  # 替换为你的钉钉 Webhook URL
-            secret=settings.dingtalk.secret,  # 替换为你的钉钉密钥
-            enabled=settings.dingtalk.enabled,  # 是否开启钉钉通知
-        )
+        self.storage_enabled = settings.storage.enabled
+        self.storage_handler = NewsStorage(output_format=settings.storage.output_format)
 
     async def fetch_hot_news(self):
         """
@@ -96,7 +94,15 @@ class CCTVNewsSpider(BaseSpider):
 
                 # 记录抓取的新闻数量
                 logger.info(f"成功抓取 {len(news_content)} 条{log_prefix}。")
-
+                # 保存新闻内容
+                if self.storage_enabled:
+                    try:
+                        filepath = self.storage_handler.save(
+                            news_content, source_name=source
+                        )
+                        logger.info(f"{log_prefix} 已保存到文件: {filepath}")
+                    except Exception as e:
+                        logger.error(f"{log_prefix} 保存新闻数据失败: {e}")
                 # 发送整合后的新闻通知
                 if self.dingtalk_notifier.enabled:
                     await self.dingtalk_notifier.send_combined_news_notification(

@@ -12,6 +12,7 @@ from save.database_handler import DatabaseHandler
 
 class SinaNewsSpider(BaseSpider):
     def __init__(self):
+        super().__init__()  # 调用基类初始化
         self.request_handler = RequestHandler()
         self.data_parser = DataParser()
         self.database_handler = DatabaseHandler()  # 初始化数据库操作模块
@@ -46,20 +47,8 @@ class SinaNewsSpider(BaseSpider):
         """
         获取新浪新闻-热点新闻-列表并并发请求新闻页面的 HTML 内容。
         """
-        hot_news_params = {
-            "callback": "jQuery11110820057572079484_1737595214093",
-            "top_type": "day",
-            "top_cat": "news_china_suda",
-            "top_time": "20250122",  # 可以根据需要动态生成日期
-            "top_show_num": "20",
-            "top_order": "DESC",
-            "short_title": "1",
-            "js_var": "hotNewsData",
-            "_": generate_timestamp(),
-        }
         await self.fetch_and_process_news(
             url=self.hot_news_url,
-            params=hot_news_params,
             category=NewsCategory.HOT.value,
             source=Source.SINA.value,
             log_prefix="新浪新闻-热点新闻",
@@ -70,7 +59,6 @@ class SinaNewsSpider(BaseSpider):
     async def fetch_and_process_news(
         self,
         url: str,
-        params: dict,
         category: str,
         source: str,
         log_prefix: str,
@@ -89,6 +77,17 @@ class SinaNewsSpider(BaseSpider):
         :param data_parser: 解析新闻数据的方法
         """
         logger.info(f"开始抓取{log_prefix}...")
+        params = {
+            "callback": "jQuery11110820057572079484_1737595214093",
+            "top_type": "day",
+            "top_cat": "news_china_suda",
+            "top_time": "20250122",  # 可以根据需要动态生成日期
+            "top_show_num": "20",
+            "top_order": "DESC",
+            "short_title": "1",
+            "js_var": "hotNewsData",
+            "_": generate_timestamp(),
+        }
         response_text = await self.request_handler.fetch_data(url, params)
         if response_text:
             # 解析 JSONP 数据
@@ -109,6 +108,16 @@ class SinaNewsSpider(BaseSpider):
                     category=category,
                     source=source,
                 )
+                # 保存新闻内容
+                if self.storage_enabled:
+                    try:
+                        filepath = self.storage_handler.save(
+                            news_content, source_name=source
+                        )
+                        logger.info(f"{log_prefix} 已保存到文件: {filepath}")
+                    except Exception as e:
+                        logger.error(f"{log_prefix} 保存新闻数据失败: {e}")
+
                 logger.info(f"成功抓取 {len(news_content)} 条{log_prefix}。")
         logger.info(f"{log_prefix}抓取完成。")
 
