@@ -9,7 +9,9 @@ from news.cctv.cctv_crawl import CCTVNewsSpider
 from news.netease.netease_crawl import NeteaseNewsSpider
 from news.sina.sina_crawl import SinaNewsSpider
 from news.tencent.tencent_crawl import TencentNewsSpider
+from news.thepaper.thepaper_crawl import ThePaperNewsSpider
 from news.toutiao.toutiao_crawl import ToutiaoNewsSpider
+from news.weibo.weibo_crawl import WeiBoNewsSpider
 from argon_log import logger, init_logging
 
 init_logging()
@@ -34,6 +36,10 @@ async def run_spider(spider_name: str, news_type: str):
         spider = ToutiaoNewsSpider()
     elif spider_name == "baidu":
         spider = BaiduNewsSpider()
+    elif spider_name == "weibo":
+        spider = WeiBoNewsSpider()
+    elif spider_name == "the_paper":
+        spider = ThePaperNewsSpider()
     else:
         raise ValueError(f"未知的爬虫名称: {spider_name}")
 
