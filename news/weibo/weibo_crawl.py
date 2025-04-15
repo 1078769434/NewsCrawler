@@ -72,8 +72,8 @@ class WeiBoNewsSpider(BaseSpider):
                     logger.error(f"{log_prefix} 保存新闻数据失败: {e}")
 
             # 发送整合后的新闻通知
-            if self.feishu_notifier.enabled:
-                await self.feishu_notifier.send_multi_news_card(news_content)
+            if self.feishu_talk_notifier.enabled:
+                await self.feishu_talk_notifier.send_multi_news_card(news_content)
         logger.info(f"{log_prefix}抓取完成。")
 
 

@@ -101,13 +101,13 @@ class SinaNewsSpider(BaseSpider):
 
                 # 过滤掉空值（抓取失败的新闻）
                 news_content = [news for news in news_content if news]
-
-                # 批量插入或更新新闻数据到数据库
-                await self.database_handler.insert_or_update_news(
-                    news_content,
-                    category=category,
-                    source=source,
-                )
+                if self.to_database:
+                    # 批量插入或更新新闻数据到数据库
+                    await self.database_handler.insert_or_update_news(
+                        news_content,
+                        category=category,
+                        source=source,
+                    )
                 # 保存新闻内容
                 if self.storage_enabled:
                     try:

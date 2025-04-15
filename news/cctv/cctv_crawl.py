@@ -4,13 +4,11 @@ import asyncio
 
 from argon_log import logger
 from base.base_spider import BaseSpider
-from config import settings
 from model.news import NewsCategory, Source
 from news.cctv.data_parser import CCTVNewsDataParser
 from news.cctv.request_handler import cctv_request_handler
 from parse.news_parse import get_news_content
 from save.database_handler import DatabaseHandler
-from save.storage import NewsStorage
 
 
 class CCTVNewsSpider(BaseSpider):
@@ -23,8 +21,6 @@ class CCTVNewsSpider(BaseSpider):
             "https://news.cctv.com/2019/07/gaiban/cmsdatainterface/page/china_1.jsonp"
         )
         self.hot_news_url = ""
-        self.storage_enabled = settings.storage.enabled
-        self.storage_handler = NewsStorage(output_format=settings.storage.output_format)
 
     async def fetch_hot_news(self):
         """
@@ -84,13 +80,13 @@ class CCTVNewsSpider(BaseSpider):
 
                 # 过滤掉空值（抓取失败的新闻）
                 news_content = [news for news in news_content if news]
-
-                # 批量插入或更新新闻数据到数据库
-                await self.database_handler.insert_or_update_news(
-                    news_content,
-                    category=category,
-                    source=source,
-                )
+                if self.to_database:
+                    # 批量插入或更新新闻数据到数据库
+                    await self.database_handler.insert_or_update_news(
+                        news_content,
+                        category=category,
+                        source=source,
+                    )
 
                 # 记录抓取的新闻数量
                 logger.info(f"成功抓取 {len(news_content)} 条{log_prefix}。")
