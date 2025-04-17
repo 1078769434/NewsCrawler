@@ -62,7 +62,7 @@ class NeteaseNewsSpider(BaseSpider):
         :param parse_method: 解析数据的方法
         """
         logger.info(f"开始抓取{log_prefix}...")
-        response = await self.request_handler.fetch_data(url)
+        response = await self.request_handler.fetch_data_get(url)
         response_text = response.text
         if response_text:
             # 解析数据
@@ -100,7 +100,7 @@ class NeteaseNewsSpider(BaseSpider):
         :param news: 单条新闻数据
         """
         # 获取新闻页面的 HTML
-        response = await self.request_handler.fetch_data(news["docurl"])
+        response = await self.request_handler.fetch_data_get(news["docurl"])
         news_html = response.text
         if news_html:
             news_content = get_news_content(news_html)
