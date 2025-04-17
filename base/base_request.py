@@ -21,30 +21,32 @@ class RequestHandler:
         self.cookies = cookies or {}
 
     # 重试配置
-    @retry(
-        stop=stop_after_attempt(3),  # 最多重试 3 次
-        wait=wait_fixed(1),  # 每次重试间隔 1 秒
-        retry=retry_if_exception_type(
-            (httpx.HTTPStatusError, Exception)
-        ),  # 仅在 HTTP 错误或请求错误时重试
-    )
     async def fetch_data_get(
-        self, url: str, params: Optional[Dict[str, Any]] = None
-    ) -> Optional[str]:
+        self,
+        url: str,
+        params: Optional[Dict[str, Any]] = None,
+        headers: Optional[Dict[str, str]] = None,
+        cookies: Optional[Dict[str, str]] = None,
+    ) -> Optional[httpx.Response]:
         """
         发送 HTTP GET 请求并返回响应内容。
 
         :param url: 请求的 URL
         :param params: 请求参数（可选）
+        :param headers: 临时请求头（可选）
+        :param cookies: 临时请求 cookies（可选）
         :return: 响应内容（字符串）
         """
         try:
             async with httpx.AsyncClient(timeout=10, follow_redirects=True) as client:
                 response = await client.get(
-                    url, headers=self.headers, cookies=self.cookies, params=params
+                    url,
+                    headers=headers or self.headers,
+                    cookies=cookies or self.cookies,
+                    params=params,
                 )
-                response.raise_for_status()  # 检查请求是否成功
-                return response.text
+                response.raise_for_status()
+                return response
         except httpx.HTTPStatusError as e:
             logger.error(f"GET 请求失败，状态码: {e.response.status_code}, URL: {url}")
         except Exception as e:
@@ -64,26 +66,30 @@ class RequestHandler:
         url: str,
         data: Optional[Dict[str, Any]] = None,
         json: Optional[Dict[str, Any]] = None,
-    ) -> Optional[str]:
+        headers: Optional[Dict[str, str]] = None,
+        cookies: Optional[Dict[str, str]] = None,
+    ) -> Optional[httpx.Response]:
         """
         发送 HTTP POST 请求并返回响应内容。
 
         :param url: 请求的 URL
         :param data: 表单数据（可选）
         :param json: JSON 数据（可选）
+        :param headers: 临时请求头（可选）
+        :param cookies: 临时请求 cookies（可选）
         :return: 响应内容（字符串）
         """
         try:
             async with httpx.AsyncClient(timeout=10, follow_redirects=True) as client:
                 response = await client.post(
                     url,
-                    headers=self.headers,
-                    cookies=self.cookies,
+                    headers=headers or self.headers,
+                    cookies=cookies or self.cookies,
                     data=data,
                     json=json,
                 )
-                response.raise_for_status()  # 检查请求是否成功
-                return response.text
+                response.raise_for_status()
+                return response
         except httpx.HTTPStatusError as e:
             logger.error(f"POST 请求失败，状态码: {e.response.status_code}, URL: {url}")
         except Exception as e:

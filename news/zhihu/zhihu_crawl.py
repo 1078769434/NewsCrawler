@@ -39,7 +39,8 @@ class ZhiHuNewsSpider(BaseSpider):
         parse_method: callable,
     ):
         logger.info(f"开始抓取{log_prefix}...")
-        response_text = await self.request_handler.fetch_data_get(url)
+        response = await self.request_handler.fetch_data_get(url)
+        response_text = response.text
         if response_text:
             # 解析数据
             news_content = parse_method(response_text)

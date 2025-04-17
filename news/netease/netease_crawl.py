@@ -5,7 +5,7 @@ import asyncio
 from argon_log import logger
 from base.base_spider import BaseSpider
 from model.news import NewsCategory, Source
-from news.netease.request_handler import RequestHandler
+from news.netease.request_handler import netease_request_handler
 from news.netease.data_parser import TencentNewsDataParser
 from parse.news_parse import get_news_content
 from save.database_handler import DatabaseHandler
@@ -14,7 +14,7 @@ from save.database_handler import DatabaseHandler
 class NeteaseNewsSpider(BaseSpider):
     def __init__(self):
         super().__init__()  # 调用基类初始化
-        self.request_handler = RequestHandler()
+        self.request_handler = netease_request_handler
         self.data_parser = TencentNewsDataParser()
         self.database_handler = DatabaseHandler()
         self.latest_china_news_url = "https://news.163.com/special/cm_guonei/"
@@ -62,7 +62,8 @@ class NeteaseNewsSpider(BaseSpider):
         :param parse_method: 解析数据的方法
         """
         logger.info(f"开始抓取{log_prefix}...")
-        response_text = await self.request_handler.fetch_data(url)
+        response = await self.request_handler.fetch_data(url)
+        response_text = response.text
         if response_text:
             # 解析数据
             json_data = parse_method(response_text)
@@ -99,7 +100,8 @@ class NeteaseNewsSpider(BaseSpider):
         :param news: 单条新闻数据
         """
         # 获取新闻页面的 HTML
-        news_html = await self.request_handler.fetch_data(news["docurl"])
+        response = await self.request_handler.fetch_data(news["docurl"])
+        news_html = response.text
         if news_html:
             news_content = get_news_content(news_html)
             news_content["url"] = news["docurl"]

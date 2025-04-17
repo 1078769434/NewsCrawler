@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from base.base_spider import BaseSpider
 from model.news import NewsCategory, Source
-from news.sina.request_handler import RequestHandler
+from news.sina.request_handler import sina_request_handler
 from news.sina.data_parser import DataParser
 import asyncio
 from argon_log import logger
@@ -13,7 +13,7 @@ from save.database_handler import DatabaseHandler
 class SinaNewsSpider(BaseSpider):
     def __init__(self):
         super().__init__()  # 调用基类初始化
-        self.request_handler = RequestHandler()
+        self.request_handler = sina_request_handler
         self.data_parser = DataParser()
         self.database_handler = DatabaseHandler()  # 初始化数据库操作模块
         self.latest_china_news_url = "https://feed.sina.com.cn/api/roll/get"
@@ -88,7 +88,8 @@ class SinaNewsSpider(BaseSpider):
             "js_var": "hotNewsData",
             "_": generate_timestamp(),
         }
-        response_text = await self.request_handler.fetch_data(url, params)
+        response = await self.request_handler.fetch_data(url, params)
+        response_text = response.text
         if response_text:
             # 解析 JSONP 数据
             json_data = parse_method(response_text)
@@ -128,7 +129,8 @@ class SinaNewsSpider(BaseSpider):
         :param news: 单条新闻数据
         """
         # 获取新闻页面的 HTML
-        news_html = await self.request_handler.fetch_data(news["url"])
+        response = await self.request_handler.fetch_data(news["url"])
+        news_html = response.text
         if news_html:
             news_content = get_news_content(news_html)
             news_content["url"] = news["url"]

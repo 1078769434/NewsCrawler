@@ -6,7 +6,7 @@ import json
 from base.base_spider import BaseSpider
 from model.news import NewsCategory, Source
 from news.tencent.data_parser import TencentNewsDataParser
-from news.tencent.request_handler import RequestHandler
+from news.tencent.request_handler import tencent_request_handler
 from argon_log import logger
 from parse.news_parse import get_news_content
 
@@ -14,7 +14,7 @@ from parse.news_parse import get_news_content
 class TencentNewsSpider(BaseSpider):
     def __init__(self):
         super().__init__()  # 调用基类初始化
-        self.request_handler = RequestHandler()
+        self.request_handler = tencent_request_handler
         self.data_parser = TencentNewsDataParser()
         self.latest_china_news_url = ""
         self.hot_news_url = "https://i.news.qq.com/web_feed/getHotModuleList"
@@ -64,7 +64,8 @@ class TencentNewsSpider(BaseSpider):
             "item_count": 20,
         }
         data = json.dumps(data, separators=(",", ":"))
-        json_data = await self.request_handler.fetch_post_data(url, data)
+        response = await self.request_handler.fetch_post_data(url, data)
+        json_data = response.json()
         if json_data:
             # 解析数据
             news_data = parse_method(json_data)
@@ -104,8 +105,25 @@ class TencentNewsSpider(BaseSpider):
 
         :param news: 单条新闻数据
         """
-        # 获取新闻页面的 HTML
-        news_html = await self.request_handler.fetch_data(news["url"])
+        headers = {
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+            "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "Pragma": "no-cache",
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "none",
+            "Sec-Fetch-User": "?1",
+            "Upgrade-Insecure-Requests": "1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36 Edg/132.0.0.0",
+            "sec-ch-ua": '"Not A(Brand";v="8", "Chromium";v="132", "Microsoft Edge";v="132"',
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": '"Windows"',
+        }
+
+        response = await self.request_handler.fetch_data(news["url"], headers=headers)
+        news_html = response.text
         if news_html:
             news_content = get_news_content(news_html)
             news_content["url"] = news["url"]
