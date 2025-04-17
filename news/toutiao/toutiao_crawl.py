@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Date:2025-01-24 11 10
 import asyncio
+import json
 
 from argon_log import logger
 from base.base_spider import BaseSpider
@@ -26,13 +27,9 @@ class ToutiaoNewsSpider(BaseSpider):
         """
         抓取今日头条-热门新闻。
         """
-        params = {
-            "origin": "toutiao_pc",
-            # "_signature": "_02B4Z6wo00f01zCjrTwAAIDD79TLJfBpgx8wh6mAAKvGlA8g8INgcfWNteRcVVCYirt6dvWO661iA3hGkslo4f2VNcGJyecAN3JBMqbKZnuO2Iwt6zNLi9cvCrJe-bpO1.oM4gAAEPUCmDk-16"
-        }
+
         await self.fetch_and_process_news(
             url=self.hot_news_url,
-            params=params,
             category="hot",
             source="toutiao",
             log_prefix="今日头条-热门新闻",
@@ -42,7 +39,6 @@ class ToutiaoNewsSpider(BaseSpider):
     async def fetch_and_process_news(
         self,
         url: str,
-        params: dict,
         category: str,
         source: str,
         log_prefix: str,
@@ -59,13 +55,19 @@ class ToutiaoNewsSpider(BaseSpider):
         :param parse_method: 解析数据的方法
         """
         logger.info(f"开始抓取{log_prefix}...")
-        response_text = await self.request_handler.fetch_data_get(url, params=params)
+        params = {
+            "origin": "toutiao_pc",
+            # "_signature": "_02B4Z6wo00f01zCjrTwAAIDD79TLJfBpgx8wh6mAAKvGlA8g8INgcfWNteRcVVCYirt6dvWO661iA3hGkslo4f2VNcGJyecAN3JBMqbKZnuO2Iwt6zNLi9cvCrJe-bpO1.oM4gAAEPUCmDk-16"
+        }
+        response = await self.request_handler.fetch_data_get(url, params=params)
+        response_text = response.text
+        cookies = await self.get_cookies()
         if response_text:
             # 解析数据
             json_data = parse_method(response_text)
             if json_data:
                 # 并发请求新闻页面的 HTML
-                tasks = [self.process_news(news) for news in json_data]
+                tasks = [self.process_news(news, cookies) for news in json_data]
                 news_content = await asyncio.gather(*tasks)
 
                 # 过滤掉空值（抓取失败的新闻）
@@ -90,22 +92,77 @@ class ToutiaoNewsSpider(BaseSpider):
                 logger.info(f"成功抓取 {len(news_content)} 条{log_prefix}。")
         logger.info(f"{log_prefix}抓取完成。")
 
-    async def process_news(self, news):
+    async def process_news(self, news, cookies):
         """
         处理单条新闻：获取 HTML 并解析新闻内容。
 
         :param news: 单条新闻数据
         """
         # 获取新闻页面的 HTML
-        news_html = await self.request_handler.fetch_data_get(news["Url"])
+        headers = {
+            "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+            "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+            "cache-control": "no-cache",
+            "pragma": "no-cache",
+            "priority": "u=0, i",
+            "referer": "https://www.toutiao.com/a6824014300391145991/",
+            "sec-ch-ua": '"Microsoft Edge";v="135", "Not-A.Brand";v="8", "Chromium";v="135"',
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": '"Windows"',
+            "sec-fetch-dest": "document",
+            "sec-fetch-mode": "navigate",
+            "sec-fetch-site": "same-origin",
+            "sec-fetch-user": "?1",
+            "upgrade-insecure-requests": "1",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Edg/135.0.0.0",
+        }
+        response = await self.request_handler.fetch_data_get(
+            news["Url"], headers=headers, cookies=cookies
+        )
+        news_html = response.text
+        # logger.debug(f"获取新闻 HTML 成功: {news_html}")
         if news_html:
             news_content = get_news_content(news_html)
             news_content["url"] = news["Url"]
-            logger.info(f"今日头条新闻:{news_content}")
+            logger.debug(f"今日头条新闻:{news_content}")
             return news_content
         else:
             logger.error(f"获取新闻 HTML 失败: {news['Url']}")
             return None  # 返回空值表示抓取失败
+
+    async def get_cookies(self):
+        headers = {
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Edg/135.0.0.0",
+            "Content-Type": "application/json",
+        }
+        url = "https://ttwid.bytedance.com/ttwid/union/register/"
+        data = {
+            "region": "cn",
+            "aid": 1768,
+            "needFid": False,
+            "service": "www.ixigua.com",
+            "migrate_info": {"ticket": "", "source": "node"},
+            "cbUrlProtocol": "https",
+            "union": True,
+        }
+        data = json.dumps(data, separators=(",", ":"))
+        response = await self.request_handler.fetch_data_post(
+            url, headers=headers, data=data
+        )
+        logger.info(f"获取 ttwid 请求响应: {response.text}")
+        ttwid = self.extract_ttwid_from_headers(response.headers)
+        logger.info(f"获取 ttwid 成功: {ttwid}")
+        cookies = {
+            "ttwid": ttwid,
+        }
+        return cookies
+
+    def extract_ttwid_from_headers(self, headers):
+        set_cookie_headers = headers.get_list("Set-Cookie")
+        for cookie in set_cookie_headers:
+            if cookie.startswith("ttwid="):
+                return cookie.split("ttwid=")[1].split(";")[0]
+        raise ValueError("未从响应头中获取到 ttwid")
 
 
 if __name__ == "__main__":
