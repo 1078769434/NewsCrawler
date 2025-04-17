@@ -77,7 +77,7 @@ class CCTVNewsSpider(BaseSpider):
                 # 并发请求新闻页面的 HTML
                 tasks = [self.process_news(news) for news in json_data]
                 news_content = await asyncio.gather(*tasks)
-
+                logger.debug(f"{news_content}")
                 # 过滤掉空值（抓取失败的新闻）
                 news_content = [news for news in news_content if news]
                 if self.to_database:
