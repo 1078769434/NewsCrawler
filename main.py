@@ -17,7 +17,6 @@ from argon_log import logger, init_logging
 
 init_logging()
 
-
 # 定义一个类型别名，表示异步方法
 AsyncMethod = Callable[[], Awaitable[None]]
 
@@ -91,7 +90,29 @@ def main():
     主程序入口：解析命令行参数并启动对应的爬虫或定时任务。
     """
     # 创建命令行参数解析器
-    parser = argparse.ArgumentParser(description="新闻爬虫主程序")
+    parser = argparse.ArgumentParser(
+        description="新闻爬虫主程序",
+        epilog="""
+示例：
+    python main.py --spider baidu --news-type latest_china_news
+
+参数说明：
+  --spider 可选值（爬虫名称）：
+    - cctv      （央视新闻）
+    - netease   （网易新闻）
+    - sina      （新浪新闻）
+    - tencent   （腾讯新闻）
+    - toutiao   （今日头条）
+    - baidu     （百度热榜）
+    - thepaper  （澎湃新闻）
+    - zhihu     （知乎热榜）
+    - weibo     （微博热搜）
+
+  --news-type 可选值（新闻类型）：
+    - hot_news            （热点新闻）
+    - latest_china_news   （国内最新新闻）
+""",
+    )
     parser.add_argument(
         "--spider",
         type=str,

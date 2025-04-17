@@ -54,7 +54,7 @@ poetry install
 python main.py --spider <spider_name> --news-type <news_type>
 ```
 
-- **`<spider_name>`**：爬虫名称，可选值：`cctv`、`netease`、`sina`、`tencent`、`toutiao`。
+- **`<spider_name>`**：爬虫名称，可选值：`cctv`、`netease`、`sina`、`tencent`、`toutiao`、`baidu`、`thepaper`、`zhihu`、`weibo`。
 - **`<news_type>`**：新闻类型，可选值：`hot_news`（热点新闻）或 `latest_china_news`（国内最新新闻）。
 
 #### 启动定时任务
