@@ -43,6 +43,8 @@ class Source(Enum):
     ZHIHU = "zhihu"
     # 微博
     WEIBO = "weibo"
+    # 凤凰新闻
+    FENG_HUANG = "feng_huang"
 
 
 class News(Base):
