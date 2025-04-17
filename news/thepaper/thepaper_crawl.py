@@ -22,7 +22,7 @@ class ThePaperNewsSpider(BaseSpider):
         """
         抓取澎湃新闻-最新国内新闻。
         """
-        pass
+        logger.warning("暂不支持该新闻类型的抓取")
 
     async def fetch_hot_news(self):
         """

@@ -70,9 +70,9 @@ class BaiduNewsSpider(BaseSpider):
         logger.info(f"{log_prefix}抓取完成。")
 
     async def fetch_hot_news(self):
-        pass
+        logger.warning("暂不支持该新闻类型的抓取")
 
-    async def process_news(self, news):
+    async def process_news(seljf, news):
         pass
 
 

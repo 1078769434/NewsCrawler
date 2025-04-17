@@ -19,7 +19,7 @@ class ZhiHuNewsSpider(BaseSpider):
         self.hot_news_url = "https://www.zhihu.com/hot"
 
     async def fetch_latest_china_news(self):
-        pass
+        logger.warning("暂不支持该新闻类型的抓取")
 
     async def fetch_hot_news(self):
         await self.fetch_and_process_news(
