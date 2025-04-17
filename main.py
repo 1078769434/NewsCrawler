@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+from typing import Callable, Awaitable
 from datetime import datetime
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
@@ -17,39 +18,45 @@ from argon_log import logger, init_logging
 init_logging()
 
 
-async def run_spider(spider_name: str, news_type: str):
+# 定义一个类型别名，表示异步方法
+AsyncMethod = Callable[[], Awaitable[None]]
+
+SPIDER_CLASSES = {
+    "cctv": CCTVNewsSpider,
+    "netease": NeteaseNewsSpider,
+    "sina": SinaNewsSpider,
+    "tencent": TencentNewsSpider,
+    "toutiao": ToutiaoNewsSpider,
+    "baidu": BaiduNewsSpider,
+    "weibo": WeiBoNewsSpider,
+    "the_paper": ThePaperNewsSpider,
+}
+
+NEWS_METHODS = {
+    "hot_news": "fetch_hot_news",
+    "latest_china_news": "fetch_latest_china_news",
+}
+
+
+async def run_spider(spider_name: str, news_type: str) -> None:
     """
     根据爬虫名称和新闻类型运行对应的爬虫。
 
     :param spider_name: 爬虫名称（如 "cctv" 或 "netease"）
     :param news_type: 新闻类型（如 "hot_news" 或 "latest_china_news"）
+    :raises ValueError: 如果爬虫名称或新闻类型未知
     """
-    if spider_name == "cctv":
-        spider = CCTVNewsSpider()
-    elif spider_name == "netease":
-        spider = NeteaseNewsSpider()
-    elif spider_name == "sina":
-        spider = SinaNewsSpider()
-    elif spider_name == "tencent":
-        spider = TencentNewsSpider()
-    elif spider_name == "toutiao":
-        spider = ToutiaoNewsSpider()
-    elif spider_name == "baidu":
-        spider = BaiduNewsSpider()
-    elif spider_name == "weibo":
-        spider = WeiBoNewsSpider()
-    elif spider_name == "the_paper":
-        spider = ThePaperNewsSpider()
-    else:
+    spider_class = SPIDER_CLASSES.get(spider_name)
+    if not spider_class:
         raise ValueError(f"未知的爬虫名称: {spider_name}")
 
-    # 根据新闻类型调用对应的方法
-    if news_type == "hot_news":
-        await spider.fetch_hot_news()
-    elif news_type == "latest_china_news":
-        await spider.fetch_latest_china_news()
-    else:
+    method_name = NEWS_METHODS.get(news_type)
+    if not method_name:
         raise ValueError(f"未知的新闻类型: {news_type}")
+
+    spider = spider_class()
+    method: AsyncMethod = getattr(spider, method_name)
+    await method()
 
 
 async def scheduled_task(spider_name: str, news_type: str, interval: int):
@@ -89,7 +96,16 @@ def main():
         "--spider",
         type=str,
         required=True,
-        choices=["cctv", "netease", "sina", "tencent", "toutiao"],
+        choices=[
+            "cctv",
+            "netease",
+            "sina",
+            "tencent",
+            "toutiao",
+            "baidu",
+            "weibo",
+            "the_paper",
+        ],
         help="指定要运行的爬虫（如 'cctv' 或 'netease'）",
     )
     parser.add_argument(
